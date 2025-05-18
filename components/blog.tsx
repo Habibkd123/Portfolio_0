@@ -13,7 +13,7 @@ const blogPosts = [
     excerpt: "Learn how to integrate OpenAI's GPT models into your React applications to create intelligent chatbots.",
     date: "April 2, 2025",
     readTime: "8 min read",
-    image: "/placeholder.svg?height=300&width=600",
+    image: "/assets/images/openaa.png",
     url: "#",
   },
   {
@@ -23,7 +23,7 @@ const blogPosts = [
       "Discover how to use Firebase Cloud Functions to create a robust content scheduling system for your applications.",
     date: "March 25, 2025",
     readTime: "6 min read",
-    image: "/placeholder.svg?height=300&width=600",
+    image: "/assets/images/firebase.png",
     url: "#",
   },
   {
@@ -33,7 +33,7 @@ const blogPosts = [
       "Explore how to leverage AI for generating compelling ad copy that converts better than traditional methods.",
     date: "March 15, 2025",
     readTime: "5 min read",
-    image: "/placeholder.svg?height=300&width=600",
+    image: "/assets/images/ADS.png",
     url: "#",
   },
   {
@@ -42,7 +42,7 @@ const blogPosts = [
     excerpt: "A comprehensive guide to the latest features in Next.js 15 and how to migrate your existing projects.",
     date: "March 5, 2025",
     readTime: "7 min read",
-    image: "/placeholder.svg?height=300&width=600",
+    image: "/assets/images/nextjs.png",
     url: "#",
   },
 ]

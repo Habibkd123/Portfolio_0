@@ -154,7 +154,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-medium">Email</h3>
-                      <p className="text-sm text-foreground/70 mt-1">contact@example.com</p>
+                      <p className="text-sm text-foreground/70 mt-1">habibkd391@gmail.com</p>
                     </div>
                   </div>
                 </CardContent>
@@ -168,7 +168,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-medium">Phone</h3>
-                      <p className="text-sm text-foreground/70 mt-1">+1 (555) 123-4567</p>
+                      <p className="text-sm text-foreground/70 mt-1">+91 7851974625</p>
                     </div>
                   </div>
                 </CardContent>
@@ -182,7 +182,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-medium">Location</h3>
-                      <p className="text-sm text-foreground/70 mt-1">San Francisco, CA</p>
+                      <p className="text-sm text-foreground/70 mt-1">Jaipur Rajasthan</p>
                     </div>
                   </div>
                 </CardContent>

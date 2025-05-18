@@ -4,7 +4,6 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Github, Linkedin, Twitter } from "lucide-react"
 import Link from "next/link"
-
 export default function Hero() {
   return (
     <section className="min-h-screen flex items-center pt-20 pb-16 px-4">
@@ -34,19 +33,19 @@ export default function Hero() {
               </div>
               <div className="flex items-center gap-4 pt-4">
                 <Button variant="ghost" size="icon" asChild>
-                  <Link href="https://github.com" target="_blank" rel="noopener noreferrer">
+                  <Link href="https://github.com/Habibkd123" target="_blank" rel="noopener noreferrer">
                     <Github className="h-5 w-5" />
                     <span className="sr-only">GitHub</span>
                   </Link>
                 </Button>
                 <Button variant="ghost" size="icon" asChild>
-                  <Link href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+                  <Link href="https://www.linkedin.com/in/habib-kd-549380265/" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-5 w-5" />
                     <span className="sr-only">LinkedIn</span>
                   </Link>
                 </Button>
                 <Button variant="ghost" size="icon" asChild>
-                  <Link href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+                  <Link href="https://twitter.com/yusi" target="_blank" rel="noopener noreferrer">
                     <Twitter className="h-5 w-5" />
                     <span className="sr-only">Twitter</span>
                   </Link>
@@ -61,9 +60,9 @@ export default function Hero() {
             className="relative"
           >
             <div className="relative w-full aspect-square max-w-md mx-auto lg:ml-auto rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-blue-400 p-1">
-              <div className="absolute inset-0 bg-background rounded-2xl m-0.5"></div>
+              <div className="absolute inset-0  rounded-2xl m-0.5"></div>
               <img
-                src="/placeholder.svg?height=600&width=600"
+                src="/assets/images/developerImg.png"
                 alt="Developer Portrait"
                 className="w-full h-full object-cover rounded-2xl"
               />
