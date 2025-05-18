@@ -59,7 +59,7 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="relative"
           >
-            <div className="relative w-full aspect-square max-w-md mx-auto lg:ml-auto rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-blue-400 p-1">
+            <div style={{ backgrond:"#00000096"}} className="relative w-full aspect-square max-w-md mx-auto lg:ml-auto rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-blue-400 p-1">
               <div className="absolute inset-0  rounded-2xl m-0.5"></div>
               <img
                 src="/assets/images/developerImg.png"
