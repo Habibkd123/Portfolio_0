@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { hygraph } from "@/lib/hygraph"
+import { GET_PROJECTS } from "@/graphql/projectQueries"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,8 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ExternalLink, Github } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
-const projects = [
+// Initial local list; will be replaced when CMS data arrives
+const staticProjects = [
   {
     id: 1,
     title: "Chatting App",
@@ -76,7 +80,20 @@ const projects = [
 export default function Projects() {
   const [activeTab, setActiveTab] = useState("all")
 
-  const filteredProjects = activeTab === "all" ? projects : projects.filter((project) => project.category === activeTab)
+  const [remoteProjects, setRemoteProjects] = useState<any[]>(staticProjects)
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const data = await hygraph.request<{ projects: any[] }>(GET_PROJECTS)
+        setRemoteProjects(data.projects)
+      } catch (err) {
+        console.error("Failed to load projects", err)
+      }
+    })();
+  }, [])
+
+  const filteredProjects = activeTab === "all" ? remoteProjects : remoteProjects.filter((project) => project.category === activeTab)
 
   return (
     <section id="projects" className="section-padding">
@@ -150,6 +167,7 @@ export default function Projects() {
 }
 
 function ProjectCard({ project, index }: { project: any; index: number }) {
+  const imageSrc = project.imageUrl || project.image || "/placeholder.svg"
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -159,39 +177,51 @@ function ProjectCard({ project, index }: { project: any; index: number }) {
     >
       <Card className="overflow-hidden h-full flex flex-col">
         <div className="relative overflow-hidden aspect-video">
-          <img
-            src={project.image || "/placeholder.svg"}
+          <Image
+            src={imageSrc}
             alt={project.title}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 hover:scale-105"
           />
         </div>
         <CardHeader>
-          <CardTitle>{project.title}</CardTitle>
+          <CardTitle>
+            <Link href={`/projects/${project.id}`} className="hover:underline">
+              {project.title}
+            </Link>
+          </CardTitle>
           <CardDescription>{project.description}</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
           <div className="flex flex-wrap gap-2">
-            {project.tags.map((tag: string) => (
+            {project&&Array?.isArray(project?.tags)&&project.tags.map((tag: string) => (
               <Badge key={tag} variant="secondary">
                 {tag}
               </Badge>
             ))}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-              <Github className="mr-2 h-4 w-4" /> Code
-            </Link>
+        <CardFooter className="flex gap-2">
+          <Button variant="secondary" size="sm" asChild>
+            <Link href={`/projects/${project.id}`}>Details</Link>
           </Button>
-          <Button size="sm" asChild>
-            <Link href={project.demoUrl} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="mr-2 h-4 w-4" /> Live Demo
-            </Link>
-          </Button>
+          {project.githubUrl && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={project.githubUrl} target="_blank" rel="noopener noreferrer">
+                <Github className="mr-2 h-4 w-4" />Code
+              </Link>
+            </Button>
+          )}
+          {project.liveUrl && (
+            <Button size="sm" asChild>
+              <Link href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-2 h-4 w-4" />Live Demo
+              </Link>
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </motion.div>
   )
 }
-

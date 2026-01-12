@@ -2,14 +2,28 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "./mode-toggle"
 import { motion } from "framer-motion"
 
-export default function Header() {
+type NavLink = {
+  label: string
+  href: string
+  order?: number
+}
+
+export default function Header({
+  logoText,
+  links,
+}: {
+  logoText?: string
+  links?: NavLink[]
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,13 +33,28 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  const navLinks = [
-    { name: "Home", href: "#" },
-    { name: "Projects", href: "#projects" },
-    { name: "Skills", href: "#skills" },
-    { name: "Blog", href: "#blog" },
-    { name: "Contact", href: "#contact" },
+  const fallbackLinks: NavLink[] = [
+    { label: "Home", href: "/" },
+    { label: "About", href: "/about" },
+    { label: "Projects", href: "#projects" },
+    { label: "Skills", href: "#skills" },
+    { label: "Blog", href: "#blog" },
+    { label: "Contact", href: "#contact" },
   ]
+
+  const rawLinks: NavLink[] = Array.isArray(links) && links.length > 0 ? links : fallbackLinks
+
+  const hasAbout = rawLinks.some((l) => (l.label || "").toLowerCase() === "about" || (l.href || "") === "/about")
+  const mergedLinks: NavLink[] = hasAbout ? rawLinks : [...rawLinks, { label: "About", href: "/about" }]
+
+  const navLinks = mergedLinks
+    .slice()
+    .sort((a, b) => (typeof a.order === "number" ? a.order : 999) - (typeof b.order === "number" ? b.order : 999))
+    .map((l) => {
+      const href = typeof l.href === "string" ? l.href : ""
+      const normalizedHref = href.startsWith("#") ? (pathname === "/" ? href : `/${href}`) : href
+      return { label: l.label, href: normalizedHref }
+    })
 
   return (
     <header
@@ -34,18 +63,18 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold gradient-text">
-            DevPortfolio
+            {logoText || "DevPortfolio"}
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
-                key={link.name}
+                key={link.label}
                 href={link.href}
                 className="text-foreground/80 hover:text-primary transition-colors"
               >
-                {link.name}
+                {link.label}
               </Link>
             ))}
             <ModeToggle />
@@ -73,12 +102,12 @@ export default function Header() {
             <nav className="flex flex-col space-y-4">
               {navLinks.map((link) => (
                 <Link
-                  key={link.name}
+                  key={link.label}
                   href={link.href}
                   className="text-foreground/80 hover:text-primary transition-colors py-2"
                   onClick={() => setIsOpen(false)}
                 >
-                  {link.name}
+                  {link.label}
                 </Link>
               ))}
             </nav>

@@ -7,6 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Database, Layout, Server, Sparkles } from "lucide-react"
 
+type SkillItem = {
+  name: string
+  level: number
+  category?: string | null
+  icon?: { url?: string | null } | null
+}
+
 const skills = {
   frontend: [
     { name: "ReactJS", level: 95 },
@@ -37,7 +44,42 @@ const skills = {
   ],
 }
 
-export default function Skills() {
+function normalizeCategory(category?: string | null) {
+  const c = (category || "").trim().toLowerCase()
+  if (!c) return "frontend"
+  if (c.includes("front")) return "frontend"
+  if (c.includes("back")) return "backend"
+  if (c.includes("db") || c.includes("data") || c.includes("sql") || c.includes("mongo") || c.includes("firebase")) return "database"
+  if (c.includes("ai") || c.includes("ml")) return "ai"
+  return "frontend"
+}
+
+function buildSkillGroups(items: SkillItem[]) {
+  const groups: Record<string, { name: string; level: number }[]> = {
+    frontend: [],
+    backend: [],
+    database: [],
+    ai: [],
+  }
+
+  for (const s of items) {
+    if (!s?.name || typeof s.level !== "number") continue
+    const key = normalizeCategory(s.category)
+    groups[key] = groups[key] || []
+    groups[key].push({ name: s.name, level: s.level })
+  }
+
+  for (const k of Object.keys(groups)) {
+    groups[k] = groups[k].slice().sort((a, b) => b.level - a.level)
+  }
+
+  return groups
+}
+
+export default function Skills({ skills: remoteSkills }: { skills?: SkillItem[] }) {
+  const hasRemote = Array.isArray(remoteSkills) && remoteSkills.length > 0
+  const groupedSkills = hasRemote ? buildSkillGroups(remoteSkills) : skills
+
   return (
     <section id="skills" className="section-padding bg-muted/50">
       <div className="container mx-auto px-4">
@@ -73,19 +115,19 @@ export default function Skills() {
           </div>
 
           <TabsContent value="frontend">
-            <SkillCategory skills={skills.frontend} />
+            <SkillCategory skills={groupedSkills.frontend} />
           </TabsContent>
 
           <TabsContent value="backend">
-            <SkillCategory skills={skills.backend} />
+            <SkillCategory skills={groupedSkills.backend} />
           </TabsContent>
 
           <TabsContent value="database">
-            <SkillCategory skills={skills.database} />
+            <SkillCategory skills={groupedSkills.database} />
           </TabsContent>
 
           <TabsContent value="ai">
-            <SkillCategory skills={skills.ai} />
+            <SkillCategory skills={groupedSkills.ai} />
           </TabsContent>
         </Tabs>
 
