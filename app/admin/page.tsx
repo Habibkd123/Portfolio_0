@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState, useEffect } from "react";
 import { hygraph } from "@/lib/hygraph";
 import { GET_PROJECTS } from "@/graphql/projectQueries";
@@ -344,9 +346,16 @@ export default function AdminPage() {
     <div className="container mx-auto p-8">
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">Admin</h1>
-        <Button variant="outline" onClick={() => signOut({ callbackUrl: "/login" })}>
-          Logout
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/admin/analytics">
+            <Button variant="secondary">
+              View Analytics
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={() => signOut({ callbackUrl: "/login" })}>
+            Logout
+          </Button>
+        </div>
       </div>
 
       <Card className="p-6">

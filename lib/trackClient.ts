@@ -47,15 +47,20 @@ export function trackEvent(payload: TrackPayload) {
 
     fireGaEvent(payload)
 
-    const body = JSON.stringify(payload);
+    // Map 'event' to 'action' for the analytics API
+    const body = JSON.stringify({
+      type: payload.type,
+      slug: payload.slug,
+      action: payload.event
+    });
 
     if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
       const blob = new Blob([body], { type: "application/json" });
-      navigator.sendBeacon("/api/track", blob);
+      navigator.sendBeacon("/api/analytics", blob);
       return;
     }
 
-    fetch("/api/track", {
+    fetch("/api/analytics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,

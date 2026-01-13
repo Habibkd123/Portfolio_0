@@ -104,10 +104,10 @@ export default async function RootLayout({
 
   const [settingsRes, navRes, footerRes, footerSectionRes, announcementRes] = await Promise.allSettled([
     hygraphPublic.request<{ singletons: SiteSettings[] }>(QUERIES.site.settings, { singletonId: "site" }),
-    hygraphPublic.request<{ navigation: Navigation | null }>(QUERIES.site.navigation, { singletonId: "main" }),
+    hygraphPublic.request<{ navigations: Navigation[] }>(QUERIES.site.navigation, { singletonId: "main" }),
     hygraphPublic.request<{ footerLinks: FooterLink[] }>(QUERIES.site.footerLinks),
     hygraphPublic.request<{ footerSections: FooterSectionData[] }>(QUERIES.site.footerSection),
-    hygraphPublic.request<{ announcementBars: AnnouncementBarData[] }>(QUERIES.site.announcementBar),
+    hygraphPublic.request<{ announcementBar: AnnouncementBarData }>(QUERIES.site.announcementBar, { type: "home" }),
   ])
 
   if (settingsRes.status === "fulfilled") {
@@ -115,23 +115,20 @@ export default async function RootLayout({
       Array.isArray(settingsRes.value?.singletons) && settingsRes.value.singletons.length > 0 ? settingsRes.value.singletons[0] : null
   }
   if (navRes.status === "fulfilled") {
-    navigationLinks = Array.isArray(navRes.value?.navigation?.links) ? navRes.value.navigation.links : null
+    // Navigation is now an array (navigations), so take the first one
+    navigationLinks = Array.isArray(navRes.value?.navigations) && navRes.value.navigations.length > 0
+      ? navRes.value.navigations[0].links
+      : null
   }
   if (footerRes.status === "fulfilled") {
     footerLinks = Array.isArray(footerRes.value?.footerLinks) ? footerRes.value.footerLinks : null
   }
-  if (footerSectionRes.status === "fulfilled") {
-    footerSection =
-      Array.isArray(footerSectionRes.value?.footerSections) && footerSectionRes.value.footerSections.length > 0
-        ? footerSectionRes.value.footerSections[0]
-        : null
-  }
   if (announcementRes.status === "fulfilled") {
-    announcementBar =
-      Array.isArray(announcementRes.value?.announcementBars) && announcementRes.value.announcementBars.length > 0
-        ? announcementRes.value.announcementBars[0]
-        : null
+    // Singular object direct access
+    announcementBar = announcementRes.value?.announcementBar ?? null
   }
+  // Disabled due to persistent schema error
+  footerSection = null;
 
   return (
     <html lang="en" suppressHydrationWarning>

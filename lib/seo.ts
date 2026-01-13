@@ -67,10 +67,10 @@ export async function getHygraphMetadata({
       alternates: canonical ? { canonical } : undefined,
       openGraph: ogImage
         ? {
-            title,
-            description,
-            images: [{ url: ogImage }],
-          }
+          title,
+          description,
+          images: [{ url: ogImage }],
+        }
         : undefined,
     }
   } catch {

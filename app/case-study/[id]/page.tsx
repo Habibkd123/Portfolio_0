@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -27,8 +28,8 @@ type CaseStudy = {
   } | null;
 };
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const { id } = params;
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
   const fallbackTitle = 'Case Study';
   const fallbackDescription = 'Detailed case study';
 
@@ -51,8 +52,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   });
 }
 
-export default async function CaseStudyPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default async function CaseStudyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   let caseStudy: CaseStudy | null = null;
 
   try {
@@ -81,7 +82,7 @@ export default async function CaseStudyPage({ params }: { params: { id: string }
   return (
     <div className="container mx-auto px-4 py-12">
       <TrackCaseStudyView />
-      
+
       <div className="mb-8">
         <Link href="/#case-studies" className="text-sm text-foreground/70 hover:text-primary transition-colors">
           ← Back to Case Studies

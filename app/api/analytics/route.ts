@@ -1,5 +1,11 @@
 import { hygraphAdmin } from '@/lib/hygraph';
-import { INCREMENT_ANALYTICS_VIEWS, INCREMENT_ANALYTICS_CLICKS, GET_ANALYTICS_BY_TYPE_AND_SLUG } from '@/graphql/analyticsMutations';
+import {
+  GET_ANALYTICS_BY_TYPE_AND_SLUG,
+  CREATE_ANALYTICS,
+  UPDATE_ANALYTICS_VIEWS,
+  UPDATE_ANALYTICS_CLICKS,
+  PUBLISH_ANALYTICS
+} from '@/graphql/analyticsMutations';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
@@ -13,30 +19,57 @@ export async function POST(request: Request) {
       );
     }
 
+    // 1. Check if record exists
+    const existing = await hygraphAdmin.request<{ analytics: any[] }>(GET_ANALYTICS_BY_TYPE_AND_SLUG, {
+      type,
+      slug,
+    });
+
+    const record = existing?.analytics?.[0];
     let result;
-    
-    if (action === 'view') {
-      result = await hygraphAdmin.request(INCREMENT_ANALYTICS_VIEWS, {
-        type,
-        slug,
-      });
-    } else if (action === 'click') {
-      result = await hygraphAdmin.request(INCREMENT_ANALYTICS_CLICKS, {
-        type,
-        slug,
-      });
+
+    if (record) {
+      // 2. Update existing
+      if (action === 'view') {
+        const newViews = (record.views || 0) + 1;
+        result = await hygraphAdmin.request(UPDATE_ANALYTICS_VIEWS, {
+          id: record.id,
+          views: newViews,
+        });
+      } else if (action === 'click') {
+        const newClicks = (record.clicks || 0) + 1;
+        result = await hygraphAdmin.request(UPDATE_ANALYTICS_CLICKS, {
+          id: record.id,
+          clicks: newClicks,
+        });
+      }
+
+      // Publish the update to ensure it persists directly (optional depending on schema, but good practice)
+      await hygraphAdmin.request(PUBLISH_ANALYTICS, { id: record.id });
+
     } else {
-      return NextResponse.json(
-        { error: 'Invalid action. Must be "view" or "click"' },
-        { status: 400 }
-      );
+      // 3. Create new
+      const initialViews = action === 'view' ? 1 : 0;
+      const initialClicks = action === 'click' ? 1 : 0;
+
+      const createRes = await hygraphAdmin.request<{ createAnalytic: any }>(CREATE_ANALYTICS, {
+        type,
+        slug,
+        views: initialViews,
+        clicks: initialClicks
+      });
+
+      if (createRes?.createAnalytic?.id) {
+        await hygraphAdmin.request(PUBLISH_ANALYTICS, { id: createRes.createAnalytic.id });
+      }
+      result = createRes;
     }
 
     return NextResponse.json({ success: true, data: result });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating analytics:', error);
     return NextResponse.json(
-      { error: 'Failed to update analytics' },
+      { error: 'Failed to update analytics: ' + error.message },
       { status: 500 }
     );
   }

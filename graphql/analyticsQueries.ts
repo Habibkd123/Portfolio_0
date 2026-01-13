@@ -10,3 +10,16 @@ export const GET_ANALYTICS_BY_TYPE = /* GraphQL */ `
     }
   }
 `;
+
+export const GET_ALL_ANALYTICS = /* GraphQL */ `
+  query GetAllAnalytics {
+    analytics(first: 100, orderBy: views_DESC) {
+      id
+      type
+      slug
+      views
+      clicks
+      updatedAt
+    }
+  }
+`;

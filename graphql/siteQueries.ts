@@ -19,7 +19,7 @@ export const GET_SITE_SETTINGS = /* GraphQL */ `
 
 export const GET_NAVIGATION = /* GraphQL */ `
   query Navigation($singletonId: String!) {
-    navigation(where: { singletonId: $singletonId }) {
+    navigations(where: { singletonId: $singletonId }, first: 1) {
       singletonId
       links {
         label
@@ -41,29 +41,7 @@ export const GET_FOOTER_LINKS = /* GraphQL */ `
   }
 `;
 
-export const GET_FOOTER_SECTION = /* GraphQL */ `
-  query FooterSection {
-    footerSections(first: 1) {
-      isVisible
-      footerText
-      quickLinks {
-        label
-        slug
-      }
-      socialLinks {
-        github
-        linkedin
-        twitter
-        instagram
-      }
-      contactInfo {
-        email
-        phone
-        address
-      }
-    }
-  }
-`;
+
 
 export const GET_SEO_SECTION = /* GraphQL */ `
   query SeoSection($slug: String!) {
@@ -169,9 +147,10 @@ export const GET_TESTIMONIALS = /* GraphQL */ `
   }
 `;
 
+// Retrying Plural forms based on user feedback
 export const GET_ANNOUNCEMENT_BAR = /* GraphQL */ `
-  query AnnouncementBar {
-    announcementBars(first: 1) {
+  query AnnouncementBar($type: String!) {
+    announcementBarS( where: { type: $type }, first: 1) {
       id
       isVisible
       message
@@ -181,6 +160,18 @@ export const GET_ANNOUNCEMENT_BAR = /* GraphQL */ `
       textColor
       stage
       updatedAt
+    }
+  }
+`;
+
+export const GET_FOOTER_SECTION = /* GraphQL */ `
+  query FooterSection {
+    footterSections(first: 1) {
+      isVisible
+      footerText
+      quickLinks
+      socialLinks
+      contactInfo
     }
   }
 `;
