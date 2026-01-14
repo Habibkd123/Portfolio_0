@@ -83,7 +83,7 @@ export default function Projects() {
   const [remoteProjects, setRemoteProjects] = useState<any[]>(staticProjects)
 
   useEffect(() => {
-    ;(async () => {
+    ; (async () => {
       try {
         const data = await hygraph.request<{ projects: any[] }>(GET_PROJECTS)
         setRemoteProjects(data.projects)
@@ -168,6 +168,15 @@ export default function Projects() {
 
 function ProjectCard({ project, index }: { project: any; index: number }) {
   const imageSrc = project.imageUrl || project.image || "/placeholder.svg"
+  const caseStudySlug =
+    project?.slug ||
+    String(project?.title || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -195,7 +204,7 @@ function ProjectCard({ project, index }: { project: any; index: number }) {
         </CardHeader>
         <CardContent className="flex-grow">
           <div className="flex flex-wrap gap-2">
-            {project&&Array?.isArray(project?.tags)&&project.tags.map((tag: string) => (
+            {project && Array?.isArray(project?.tags) && project.tags.map((tag: string) => (
               <Badge key={tag} variant="secondary">
                 {tag}
               </Badge>
@@ -205,6 +214,9 @@ function ProjectCard({ project, index }: { project: any; index: number }) {
         <CardFooter className="flex gap-2">
           <Button variant="secondary" size="sm" asChild>
             <Link href={`/projects/${project.id}`}>Details</Link>
+          </Button>
+          <Button variant="secondary" size="sm" asChild className="flex-1">
+            <Link href={`/case-study/${caseStudySlug}`}>Case Study</Link>
           </Button>
           {project.githubUrl && (
             <Button variant="outline" size="sm" asChild>

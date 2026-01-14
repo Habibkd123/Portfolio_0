@@ -123,6 +123,8 @@ export default async function Home() {
     hygraphPublic.request<{ testimonials: Testimonial[] }>(QUERIES.site.testimonials),
     hygraphPublic.request<{ singletons: SiteSettings[] }>(QUERIES.site.settings, { singletonId: "site" }),
   ])
+
+  console.log("skillsRes",skillsRes)
   if (heroRes.status === "fulfilled") {
     hero = Array.isArray(heroRes.value?.heroSections) && heroRes.value.heroSections.length > 0 ? heroRes.value.heroSections[0] : null
   }

@@ -1,7 +1,7 @@
 import { GET_PROJECTS, GET_PROJECT_BY_ID, GET_PROJECTS_BY_ID } from "./projectQueries";
 import { GET_BLOG_POSTS, GET_BLOG_POST_BY_SLUG, GET_BLOG_POSTS_BY_SLUG } from "./blogQueries";
 import { GET_ANALYTICS_BY_TYPE } from "./analyticsQueries";
-import { GET_CASE_STUDY_BY_ID } from "./caseStudyQueries";
+import { GET_CASE_STUDY_BY_ID, GET_CASE_STUDY_BY_SLUG } from "./caseStudyQueries";
 import {
   GET_ANNOUNCEMENT_BAR,
   GET_ABOUT_SECTION,
@@ -33,6 +33,7 @@ export const QUERIES = {
   },
   caseStudy: {
     byId: GET_CASE_STUDY_BY_ID,
+    bySlug: GET_CASE_STUDY_BY_SLUG,
   },
   site: {
     settings: GET_SITE_SETTINGS,

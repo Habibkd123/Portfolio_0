@@ -7,6 +7,15 @@ import Link from "next/link"
 import Image from "next/image"
 import { trackEvent } from "@/lib/trackClient"
 
+function isResumeLink(href: string) {
+    const h = (href || "").toLowerCase().trim()
+    if (!h) return false
+    if (h.endsWith(".pdf") || h.endsWith(".doc") || h.endsWith(".docx")) return true
+    if (h.includes("drive.google") || h.includes("docs.google") || h.includes("dropbox") || h.includes("onedrive")) return true
+    if (h.includes("resume") || h.includes("cv")) return true
+    return false
+}
+
 type HeroSection = {
   badgeText?: string | null
   headingLine1?: string | null
@@ -40,6 +49,10 @@ export default function Hero({
   heroText?: HeroText
   social?: SocialLinks
 }) {
+    const secondaryHref = hero?.secondaryButtonHref || "/#contact"
+    const secondaryText = hero?.secondaryButtonText || "Contact Me"
+    const secondaryIsResume = isResumeLink(secondaryHref) || /resume|cv/i.test(secondaryText)
+
     return (
         <section className="min-h-screen flex items-center pt-20 pb-16 px-4">
             <div className="container mx-auto">
@@ -68,12 +81,24 @@ export default function Hero({
                                     </Link>
                                 </Button>
                                 <Button size="lg" variant="outline" asChild>
-                                    <Link
-                                        href={hero?.secondaryButtonHref || "/#contact"}
-                                        onClick={() => trackEvent({ type: "cta", slug: hero?.secondaryButtonHref || "/#contact", event: "click" })}
-                                    >
-                                        {hero?.secondaryButtonText || "Contact Me"}
-                                    </Link>
+                                    {secondaryIsResume ? (
+                                        <a
+                                            href={secondaryHref}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            download
+                                            onClick={() => trackEvent({ type: "cta", slug: secondaryHref, event: "click" })}
+                                        >
+                                            {secondaryText}
+                                        </a>
+                                    ) : (
+                                        <Link
+                                            href={secondaryHref}
+                                            onClick={() => trackEvent({ type: "cta", slug: secondaryHref, event: "click" })}
+                                        >
+                                            {secondaryText}
+                                        </Link>
+                                    )}
                                 </Button>
                             </div>
                             <div className="flex items-center gap-4 pt-4">

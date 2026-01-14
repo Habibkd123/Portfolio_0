@@ -21,3 +21,27 @@ export const GET_CASE_STUDY_BY_ID = /* GraphQL */ `
     }
   }
 `;
+
+export const GET_CASE_STUDY_BY_SLUG = /* GraphQL */ `
+  query CaseStudyBySlug($slug: String!) {
+    caseStudy(where: { slug: $slug }) {
+      active
+      challenges
+      featured
+      features
+      gitHubUrl
+      id
+      liveUrl
+      problem
+      resultsOutcome
+      shortDescription
+      solution
+      stage
+      techStack
+      title
+      coverImage {
+        url
+      }
+    }
+  }
+`;

@@ -4,69 +4,66 @@ import type React from "react"
 
 import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Database, Layout, Server, Sparkles } from "lucide-react"
+import { Database, Layout, Server, Sparkles, Wrench } from "lucide-react"
+import Image from "next/image"
+import { useMemo, useState } from "react"
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
+}
 
 type SkillItem = {
   name: string
   level: number
-  category?: string | null
+  category?: string | string[] | null
+  isVisible?: boolean | null
   icon?: { url?: string | null } | null
 }
 
-const skills = {
-  frontend: [
-    { name: "ReactJS", level: 95 },
-    { name: "Next.js", level: 90 },
-    { name: "TailwindCSS", level: 85 },
-    { name: "Material-UI", level: 80 },
-    { name: "Chakra UI", level: 75 },
-    { name: "Framer Motion", level: 70 },
-  ],
-  backend: [
-    { name: "Node.js", level: 90 },
-    { name: "Express.js", level: 85 },
-    { name: "REST APIs", level: 90 },
-    { name: "GraphQL", level: 75 },
-    { name: "Socket.IO", level: 80 },
-  ],
-  database: [
-    { name: "Firebase Firestore", level: 90 },
-    { name: "MongoDB", level: 85 },
-    { name: "PostgreSQL", level: 80 },
-    { name: "MySQL", level: 75 },
-  ],
-  ai: [
-    { name: "OpenAI API", level: 85 },
-    { name: "TensorFlow.js", level: 70 },
-    { name: "Natural Language Processing", level: 75 },
-    { name: "AI Content Generation", level: 80 },
-  ],
-}
+function normalizeCategoryKeys(category?: SkillItem["category"]) {
+  const raw = Array.isArray(category) ? category : [category]
+  const keys = raw
+    .map((v) => String(v ?? "").trim().toLowerCase())
+    .filter(Boolean)
+    .flatMap((c) => {
+      if (c.includes("front")) return ["frontend"]
+      if (c.includes("back")) return ["backend"]
+      if (c.includes("tools") || c.includes("library") || c.includes("framework")) return ["toolsLibraries"]
+      if (c.includes("db") || c.includes("data") || c.includes("sql") || c.includes("mongo") || c.includes("firebase")) return ["database"]
+      if (c.includes("ai") || c.includes("ml")) return ["ai"]
+      if (c === "frontend" || c === "backend" || c === "database" || c === "ai" || c === "toolslibraries") return [c === "toolslibraries" ? "toolsLibraries" : c]
+      return []
+    })
 
-function normalizeCategory(category?: string | null) {
-  const c = (category || "").trim().toLowerCase()
-  if (!c) return "frontend"
-  if (c.includes("front")) return "frontend"
-  if (c.includes("back")) return "backend"
-  if (c.includes("db") || c.includes("data") || c.includes("sql") || c.includes("mongo") || c.includes("firebase")) return "database"
-  if (c.includes("ai") || c.includes("ml")) return "ai"
-  return "frontend"
+  return keys.length > 0 ? Array.from(new Set(keys)) : ["frontend"]
 }
 
 function buildSkillGroups(items: SkillItem[]) {
-  const groups: Record<string, { name: string; level: number }[]> = {
+  const groups: Record<string, SkillItem[]> = {
     frontend: [],
     backend: [],
     database: [],
     ai: [],
+    toolsLibraries: [],
   }
 
   for (const s of items) {
+    console.log("data>>>>>>>>>>>>>>>>>",s)
     if (!s?.name || typeof s.level !== "number") continue
-    const key = normalizeCategory(s.category)
-    groups[key] = groups[key] || []
-    groups[key].push({ name: s.name, level: s.level })
+    const keys = normalizeCategoryKeys(s.category)
+    for (const key of keys) {
+      groups[key] = groups[key] || []
+      groups[key].push(s)
+    }
   }
 
   for (const k of Object.keys(groups)) {
@@ -77,8 +74,50 @@ function buildSkillGroups(items: SkillItem[]) {
 }
 
 export default function Skills({ skills: remoteSkills }: { skills?: SkillItem[] }) {
-  const hasRemote = Array.isArray(remoteSkills) && remoteSkills.length > 0
-  const groupedSkills = hasRemote ? buildSkillGroups(remoteSkills) : skills
+  console.log("newSkilllllllllllll0,0",remoteSkills)
+  const visibleRemoteSkills = Array.isArray(remoteSkills)
+    ? remoteSkills.filter((s) => s && s.isVisible !== false)
+    : []
+  if (visibleRemoteSkills.length === 0) {
+    return (
+      <section id="skills" className="section-padding bg-muted/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Technical Skills</h2>
+            <p className="text-foreground/70 max-w-2xl mx-auto">No skills found from Hygraph.</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  const groupedSkills = buildSkillGroups(visibleRemoteSkills)
+
+  const allSkills = useMemo(() => {
+    const map = new Map<string, SkillItem>()
+    for (const s of visibleRemoteSkills) {
+      if (!s?.name) continue
+      map.set(String(s.name), s)
+    }
+    return Array.from(map.values()).sort((a, b) => (b.level ?? 0) - (a.level ?? 0))
+  }, [visibleRemoteSkills])
+
+  const categories = useMemo(
+    () =>
+      [
+        { key: "all", label: "All Skills", icon: Sparkles },
+        { key: "frontend", label: "Frontend", icon: Layout },
+        { key: "backend", label: "Backend", icon: Server },
+        { key: "database", label: "Database", icon: Database },
+        { key: "ai", label: "AI Tools", icon: Sparkles },
+        { key: "toolsLibraries", label: "Tools & Libraries", icon: Wrench },
+      ] as const,
+    []
+  )
+
+  const [activeCategory, setActiveCategory] = useState<(typeof categories)[number]["key"]>("all")
+
+  const activeSkills = activeCategory === "all" ? allSkills : (groupedSkills?.[activeCategory] ?? [])
 
   return (
     <section id="skills" className="section-padding bg-muted/50">
@@ -96,40 +135,90 @@ export default function Skills({ skills: remoteSkills }: { skills?: SkillItem[] 
           </p>
         </motion.div>
 
-        <Tabs defaultValue="frontend" className="max-w-4xl mx-auto">
-          <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-2 md:grid-cols-4">
-              <TabsTrigger value="frontend" className="flex items-center gap-2">
-                <Layout className="h-4 w-4" /> Frontend
-              </TabsTrigger>
-              <TabsTrigger value="backend" className="flex items-center gap-2">
-                <Server className="h-4 w-4" /> Backend
-              </TabsTrigger>
-              <TabsTrigger value="database" className="flex items-center gap-2">
-                <Database className="h-4 w-4" /> Database
-              </TabsTrigger>
-              <TabsTrigger value="ai" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" /> AI Tools
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <Card className="lg:col-span-4 border-muted/60 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40">
+            <CardHeader>
+              <CardTitle className="text-xl">Categories</CardTitle>
+              <CardDescription className="text-foreground/70">Pick a category to explore.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-80px" }}
+                className="grid grid-cols-2 lg:grid-cols-1 gap-3"
+              >
+                {categories.map((c) => {
+                  const Icon = c.icon
+                  const isActive = activeCategory === c.key
+                  const count =
+                    c.key === "all" ? allSkills.length : (groupedSkills?.[c.key] ?? []).length
+                  return (
+                    <motion.button
+                      key={c.key}
+                      type="button"
+                      variants={itemVariants}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setActiveCategory(c.key)}
+                      className={
+                        "group flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors " +
+                        (isActive
+                          ? "border-primary/40 bg-primary/10"
+                          : "border-muted/60 bg-background hover:bg-muted/40")
+                      }
+                    >
+                      <span
+                        className={
+                          "flex h-9 w-9 items-center justify-center rounded-md transition-colors " +
+                          (isActive ? "bg-primary/15 text-primary" : "bg-muted/60 text-foreground/80")
+                        }
+                      >
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <span className="flex-1">
+                        <span className="block font-semibold leading-tight">{c.label}</span>
+                        <span className="block text-xs text-foreground/70">{count} skills</span>
+                      </span>
+                      <span
+                        className={
+                          "text-xs rounded-full px-2 py-1 border transition-colors " +
+                          (isActive ? "border-primary/30 text-primary" : "border-muted/60 text-foreground/70")
+                        }
+                      >
+                        View
+                      </span>
+                    </motion.button>
+                  )
+                })}
+              </motion.div>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="frontend">
-            <SkillCategory skills={groupedSkills.frontend} />
-          </TabsContent>
-
-          <TabsContent value="backend">
-            <SkillCategory skills={groupedSkills.backend} />
-          </TabsContent>
-
-          <TabsContent value="database">
-            <SkillCategory skills={groupedSkills.database} />
-          </TabsContent>
-
-          <TabsContent value="ai">
-            <SkillCategory skills={groupedSkills.ai} />
-          </TabsContent>
-        </Tabs>
+          <Card className="lg:col-span-8 border-muted/60 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/40">
+            <CardHeader>
+              <CardTitle className="text-xl">{categories.find((c) => c.key === activeCategory)?.label}</CardTitle>
+              <CardDescription className="text-foreground/70">
+                A quick overview of the tools I use most in this area.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <motion.div
+                  key={activeCategory}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="contents"
+                >
+                  {activeSkills.map((skill, index) => (
+                    <SkillTile key={skill.name} skill={skill} index={index} />
+                  ))}
+                </motion.div>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <SkillCard
@@ -158,34 +247,49 @@ export default function Skills({ skills: remoteSkills }: { skills?: SkillItem[] 
   )
 }
 
-function SkillCategory({ skills }: { skills: { name: string; level: number }[] }) {
+function SkillTile({ skill, index }: { skill: SkillItem; index: number }) {
+  const hasIcon = Boolean(skill?.icon?.url)
+
   return (
-    <div className="space-y-6">
-      {skills.map((skill, index) => (
-        <motion.div
-          key={skill.name}
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
-          className="space-y-2"
-        >
-          <div className="flex justify-between items-center">
-            <span className="font-medium">{skill.name}</span>
-            <span className="text-sm text-foreground/70">{skill.level}%</span>
+    <motion.div
+      layout
+      variants={itemVariants}
+      whileHover={{ y: -3 }}
+      whileTap={{ scale: 0.99 }}
+      className="rounded-xl border border-muted/60 bg-background/70 p-4 transition-shadow hover:shadow-md"
+    >
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 rounded-lg bg-muted/60 flex items-center justify-center overflow-hidden">
+          {hasIcon ? (
+            <Image
+              src={skill.icon!.url as string}
+              alt={skill.name}
+              width={40}
+              height={40}
+              className="h-10 w-10 object-cover"
+            />
+          ) : (
+            <span className="text-sm font-semibold text-foreground/80">{skill.name.slice(0, 2).toUpperCase()}</span>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-semibold truncate">{skill.name}</h3>
+            <span className="text-xs text-foreground/70 whitespace-nowrap">{skill.level}%</span>
           </div>
-          <div className="w-full bg-muted rounded-full h-2.5">
+          <div className="mt-2 w-full bg-muted/80 rounded-full h-2 overflow-hidden">
             <motion.div
-              className="bg-primary h-2.5 rounded-full"
+              className="bg-primary h-2 rounded-full"
               initial={{ width: 0 }}
               whileInView={{ width: `${skill.level}%` }}
               viewport={{ once: true }}
-              transition={{ duration: 1, delay: index * 0.1 }}
+              transition={{ duration: 0.85, delay: index * 0.04, ease: "easeOut" }}
             />
           </div>
-        </motion.div>
-      ))}
-    </div>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
@@ -196,8 +300,10 @@ function SkillCard({ icon, title, description }: { icon: React.ReactNode; title:
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
     >
-      <Card>
+      <Card className="h-full transition-shadow hover:shadow-md">
         <CardHeader>
           <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center text-primary mb-4">
             {icon}

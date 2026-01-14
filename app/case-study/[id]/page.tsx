@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { hygraphPublic } from '@/lib/hygraph';
 import { QUERIES } from '@/graphql/operations';
 import { getHygraphMetadata } from '@/lib/seo';
-import { trackEvent } from '@/lib/trackClient';
-import { useEffect } from 'react';
+import TrackView from '@/components/track-view';
+
 
 type CaseStudy = {
   id: string;
@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   let ogImageUrl: string | undefined;
   try {
     const { caseStudy } = await hygraphPublic.request<{ caseStudy: CaseStudy | null }>(
-      QUERIES.caseStudy.byId,
-      { id }
+      QUERIES.caseStudy.bySlug,
+      { slug: id }
     );
     ogImageUrl = caseStudy?.coverImage?.url ?? undefined;
   } catch {
@@ -51,15 +51,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraphImageUrl: ogImageUrl,
   });
 }
-
 export default async function CaseStudyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let caseStudy: CaseStudy | null = null;
 
   try {
     const data = await hygraphPublic.request<{ caseStudy: CaseStudy | null }>(
-      QUERIES.caseStudy.byId,
-      { id }
+      QUERIES.caseStudy.bySlug,
+      { slug: id }
     );
     caseStudy = data.caseStudy;
   } catch (err) {
@@ -71,17 +70,35 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ id: 
     return notFound();
   }
 
-  // Track view on the client side
-  const TrackCaseStudyView = () => {
-    useEffect(() => {
-      trackEvent({ type: 'case-study', slug: id, event: 'view' });
-    }, [id]);
-    return null;
-  };
+  const techStack = Array.isArray(caseStudy.techStack)
+    ? caseStudy.techStack
+    : typeof (caseStudy as any).techStack === 'string'
+      ? [(caseStudy as any).techStack]
+      : []
+
+  const challenges = Array.isArray(caseStudy.challenges)
+    ? caseStudy.challenges
+    : typeof (caseStudy as any).challenges === 'string'
+      ? [(caseStudy as any).challenges]
+      : []
+
+  const features = Array.isArray(caseStudy.features)
+    ? caseStudy.features
+    : typeof (caseStudy as any).features === 'string'
+      ? [(caseStudy as any).features]
+      : []
+
+  // // Track view on the client side
+  // const TrackCaseStudyView = () => {
+  //   // useEffect(() => {
+  //     trackEvent({ type: 'case-study', slug: id, event: 'view' });
+  //   // }, [id]);
+  //   return <></>;
+  // };
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <TrackCaseStudyView />
+      <TrackView type="case-study" slug={id} />
 
       <div className="mb-8">
         <Link href="/#case-studies" className="text-sm text-foreground/70 hover:text-primary transition-colors">
@@ -110,9 +127,9 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ id: 
           </div>
         )}
 
-        {caseStudy.techStack && caseStudy.techStack.length > 0 && (
+        {techStack.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-8">
-            {caseStudy.techStack.map((tech) => (
+            {techStack.map((tech) => (
               <Badge key={tech} variant="secondary">
                 {tech}
               </Badge>
@@ -142,22 +159,22 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ id: 
             </section>
           )}
 
-          {caseStudy.challenges && caseStudy.challenges.length > 0 && (
+          {challenges.length > 0 && (
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">Key Challenges</h2>
               <ul className="list-disc pl-6 space-y-2">
-                {caseStudy.challenges.map((challenge, index) => (
+                {challenges.map((challenge, index) => (
                   <li key={index}>{challenge}</li>
                 ))}
               </ul>
             </section>
           )}
 
-          {caseStudy.features && caseStudy.features.length > 0 && (
+          {features.length > 0 && (
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">Key Features</h2>
               <ul className="list-disc pl-6 space-y-2">
-                {caseStudy.features.map((feature, index) => (
+                {features.map((feature, index) => (
                   <li key={index}>{feature}</li>
                 ))}
               </ul>
